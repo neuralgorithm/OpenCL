@@ -16,14 +16,9 @@
 #define Kappa 2.0
 #define Tau 100.0
 
-void initialize(float *u, float *w, float *z, float *result)
+void initialize(float *w, float *u, float *z, float *result)
 {
   int i, j;
-
-  u = (float *)malloc(N*sizeof(float));
-  w = (float *)malloc(N*N*sizeof(float));
-  z = (float *)malloc(N*sizeof(float));
-  result = (float *)malloc(T*N*sizeof(float));
 
   for(i = 0; i < N; i++){
     u[i] = I;
@@ -45,11 +40,12 @@ void initialize(float *u, float *w, float *z, float *result)
       }
     }
   }
+  
 }
 void finalize(float *u, float *w, float *z, float *result)
 {
-  free(u);
   free(w);
+  free(u);
   free(z);
   free(result);
 }
@@ -90,33 +86,12 @@ int main(void)
   float *w, *z, *u, *result;
   cl_mem w_buff, z_buff, u_buff, res_buff;
 
-  ////initialize(u, w, z, result);
-
   w = (float *)malloc(N*N*sizeof(float));
   u = (float *)malloc(N*sizeof(float));
   z = (float *)malloc(N*sizeof(float));
   result = (float *)malloc(T*N*sizeof(float));
 
-  for(i = 0; i < N; i++){
-    u[i] = I;
-    z[i] = 0;
-  }
-
-  srand(23);
-
-  for(i = 0; i < N; i++){
-    for(j = 0; j < N; j++){
-      if (i == j){
-	w[j+N*i] = 0;
-      }else{
-	if ((float)rand()/(float)RAND_MAX < Pr){
-	  w[j+N*i] = 1;
-	}else{
-	  w[j+N*i] = 0;
-	}
-      }
-    }
-  }
+  initialize(w, u, z, result);
 
   clGetPlatformIDs(1, &platform, NULL);
   clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
@@ -157,12 +132,7 @@ int main(void)
 
   output("cl.out", result);
 
-  ////finalize(u, w, z, result);
-
-  free(w);
-  free(u);
-  free(z);
-  free(result);
+  finalize(w, u, z, result);
 
   clReleaseMemObject(u_buff);
   clReleaseMemObject(w_buff);
